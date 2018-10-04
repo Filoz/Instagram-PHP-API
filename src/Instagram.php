@@ -79,7 +79,7 @@ class Instagram
      * @var string[]
      */
     private $_actions = array('follow', 'unfollow', 'approve', 'ignore');
-    
+
     /**
      * Rate limit.
      *
@@ -124,30 +124,23 @@ class Instagram
     {
         if (is_array($scopes) && count(array_intersect($scopes, $this->_scopes)) === count($scopes)) {
             return self::API_OAUTH_URL . '?client_id=' . $this->getApiKey() . '&redirect_uri=' . urlencode($this->getApiCallback()) . '&scope=' . implode('+',
-                $scopes) . '&response_type=code';
+                    $scopes) . '&response_type=code';
         }
 
         throw new InstagramException("Error: getLoginUrl() - The parameter isn't an array or invalid scope permissions used.");
     }
 
     /**
-     * Search for a user.
-     *
-     * @param string $name Instagram username
-     * @param int $limit Limit of returned results
+     * Get information about the owner of the access_token.
+     * https://api.instagram.com/v1/users/self/?access_token=ACCESS-TOKEN
+     * PARAMETERS
+     * ACCESS_TOKEN    A valid access token.
      *
      * @return mixed
      */
-    public function searchUser($name, $limit = 0)
+    public function searchUser()
     {
-        $params = array();
-
-        $params['q'] = $name;
-        if ($limit > 0) {
-            $params['count'] = $limit;
-        }
-
-        return $this->_makeCall('users/search', $params);
+        return $this->_makeCall('users/self');
     }
 
     /**
@@ -167,16 +160,21 @@ class Instagram
     }
 
     /**
-     * Get user recent media.
+     * Get the most recent media published by the owner of the access_token.
+     * https://api.instagram.com/v1/users/self/media/recent/?access_token=ACCESS-TOKEN
+     * PARAMETERS
+     * ACCESS_TOKEN    A valid access token.
+     * MAX_ID    Return media earlier than this max_id.
+     * MIN_ID    Return media later than this min_id.
+     * COUNT    Count of media to return.
      *
-     * @param int|string $id Instagram user ID
-     * @param int $limit Limit of returned results
+     * @param int $limit  Limit of returned results
      * @param int $min_id Return media later than this min_id
      * @param int $max_id Return media earlier than this max_id
      *
      * @return mixed
      */
-    public function getUserMedia($id = 'self', $limit = 0, $min_id = null, $max_id = null)
+    public function getUserMedia($limit = 0, $min_id = null, $max_id = null)
     {
         $params = array();
 
@@ -190,7 +188,7 @@ class Instagram
             $params['max_id'] = $max_id;
         }
 
-        return $this->_makeCall('users/' . $id . '/media/recent', $params);
+        return $this->_makeCall('users/self/media/recent', $params);
     }
 
     /**
@@ -216,7 +214,7 @@ class Instagram
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * Get the list of users this user follows
      *
      * @param int|string $id Instagram user ID.
@@ -246,7 +244,7 @@ class Instagram
     }
 
     /**
-     * DEPRECATED
+     * @deprecated
      * Get the list of users this user is followed by.
      *
      * @param int|string $id Instagram user ID
@@ -286,7 +284,7 @@ class Instagram
     {
         return $this->_makeCall('users/' . $id . '/relationship');
     }
-    
+
     /**
      * Get the value of X-RateLimit-Remaining header field.
      *
@@ -398,6 +396,7 @@ class Instagram
     }
 
     /**
+     * @deprecated
      * Get a list of users who have liked this media.
      *
      * @param int $id Instagram media ID
@@ -410,6 +409,8 @@ class Instagram
     }
 
     /**
+     * @deprecated
+     *(Deprecation not relevant when fetching comments for self media)
      * Get a list of comments for this media.
      *
      * @param int $id Instagram media ID
@@ -422,6 +423,7 @@ class Instagram
     }
 
     /**
+     * @deprecated
      * Add a comment on a media.
      *
      * @param int $id Instagram media ID
@@ -435,6 +437,7 @@ class Instagram
     }
 
     /**
+     * @deprecated
      * Remove user comment on a media.
      *
      * @param int $id Instagram media ID
@@ -448,6 +451,7 @@ class Instagram
     }
 
     /**
+     * @deprecated
      * Set user like on a media.
      *
      * @param int $id Instagram media ID
@@ -460,6 +464,7 @@ class Instagram
     }
 
     /**
+     * @deprecated
      * Remove user like on a media.
      *
      * @param int $id Instagram media ID
@@ -654,7 +659,7 @@ class Instagram
 
         // convert header content into an array
         $headers = $this->processHeaders($headerContent);
-        
+
         // get the 'X-Ratelimit-Remaining' header value
         if (isset($headers['X-Ratelimit-Remaining'])) {
             $this->_xRateLimitRemaining = trim($headers['X-Ratelimit-Remaining']);
